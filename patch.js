@@ -1,7 +1,7 @@
 patch();
 
 function patch() {
-  var head = document.querySelector('head');
+  var head = document.getElementsByTagName('head')[0];
   var ensure = __webpack_require__.e;
   var chunks = __webpack_require__.s;
   var failures;
@@ -13,7 +13,7 @@ function patch() {
     var handler = function(error) {
       if (!callback) return;
 
-      callback(__webpack_require__, error);
+      callback(error);
       callback = null;
     };
 
@@ -71,10 +71,18 @@ function patch() {
 
       return;
     }
-
-    script.onload = script.onerror = function() {
-      script.onload = script.onerror = null;
-      setTimeout(callback, 0);
-    };
+    if('onload' in script){
+      script.onload = script.onerror = function() {
+        script.onload = script.onerror = null;
+        setTimeout(callback, 0);
+      };
+    }else if('onreadystatechange' in script){
+      script.onreadystatechange=function(){
+        if(script.readyState == "complete" || script.readyState == "loaded"){
+          script.onreadystatechange = new Function();
+          setTimeout(callback, 0);
+        }
+      };
+    }
   };
 };
